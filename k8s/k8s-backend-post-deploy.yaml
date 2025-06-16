@@ -1,26 +1,46 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: title
-  labels:
-    app: title
+  name: k8s-backend-post-deployment
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
-  replicas: 1
+  replicas: 1  # 원하는 파드 복제본 수 (기본값: 1)
   selector:
     matchLabels:
-      app: title
+      app: k8s-backend-post  # 템플릿의 labels와 일치해야 함
   template:
     metadata:
-      name: title
       labels:
-        app: title
+        app: k8s-backend-post  # selector와 일치해야 함
     spec:
       containers:
-        - name: title
-          image: nginx
-          imagePullPolicy: IfNotPresent
+        - name: k8s-backend-post
+          image: firendermen/k8s-backend-post:0.0.1
+          imagePullPolicy: Always
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
           ports:
-            - containerPort: 80
-              protocol: TCP
-      restartPolicy: Always
-      
+            - containerPort: 8080
+
+          volumeMounts:
+            - mountPath: /etc/config
+              name: backend-post-config-volume
+              readOnly: true
+            - mountPath: /etc/secret
+              name: backend-post-secret-volume
+              readOnly: true
+      volumes:
+        - name: backend-post-config-volume
+          configMap:
+            name: backend-post-config
+            items:
+              - key: application-dev.yml
+                path: application-dev.yml
+        - name: backend-post-secret-volume
+          secret:
+            secretName: backend-post-secret
+            items:
+              - key: application-secret.yml
+                path: application-secret.yml

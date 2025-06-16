@@ -1,12 +1,26 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: title
+  name: backend-post-config
 data:
-  # kv format
-  key: "value"
-  $actual-config-file$: "name.properties"
+  application-dev.yml: |
+    server:
+      port: 8080
 
-  # file format
-  name.properties: |
-    field=value1,value2
+    spring:
+      datasource:
+        url: jdbc:mysql://k8s-external-post-mysql-service:3306/post?serverTimezone=UTC&useSSL=true&autoReconnect=true&useUnicode=true&characterEncoding=utf-8
+        
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        hikari:
+          connection-test-query: SELECT 1 # HikariCP 유효성 검사 추가
+    jpa:
+      hibernate:
+        ddl-auto: create # 오직 테스트 환경에서만
+        generate-ddl: true # 오직 테스트 환경에서만
+        show-sql: true
+      open-in-view: false
+    kafka:
+      bootstrap-servers: localhost:9092
+
+
